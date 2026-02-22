@@ -1,0 +1,67 @@
+using System;
+using Dm;
+
+namespace DmConnectionTest
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            try
+            {
+                // 测试不同的连接字符串格式
+                var connectionStringFormats = new[]
+                {
+                    "Server=localhost;Port=5236;UserId=SYSDBA;PWD=Zj20031234000;",
+                    "Data Source=localhost:5236;User Id=SYSDBA;PWD=Zj20031234000;",
+                    "server=localhost;port=5236;user=SYSDBA;password=Zj20031234000;",
+                    "Server=127.0.0.1;Port=5236;UserId=SYSDBA;PWD=Zj20031234000;",
+                    "Data Source=127.0.0.1:5236;User Id=SYSDBA;PWD=Zj20031234000;",
+                    "server=127.0.0.1;port=5236;user=SYSDBA;password=Zj20031234000;"
+                };
+
+                Console.WriteLine("开始测试达梦数据库连接字符串格式...\n");
+
+                foreach (var connStr in connectionStringFormats)
+                {
+                    try
+                    {
+                        Console.WriteLine($"测试连接字符串: {connStr}");
+
+                        using (var connection = new DmConnection(connStr))
+                        {
+                            connection.Open();
+                            Console.WriteLine("✓ 连接成功！");
+
+                            // 测试简单查询
+                            using (var command = connection.CreateCommand())
+                            {
+                                command.CommandText = "SELECT 1 AS test_value FROM DUAL";
+                                var result = command.ExecuteScalar();
+                                Console.WriteLine($"✓ 查询成功！结果: {result}");
+                            }
+
+                            connection.Close();
+                            Console.WriteLine($"\n=== 成功的连接字符串格式 ===\n{connStr}\n");
+                            return;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"✗ 失败: {ex.Message}\n");
+                    }
+                }
+
+                Console.WriteLine("\n所有连接字符串格式都失败了。");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"程序错误: {ex.Message}");
+                Console.WriteLine($"堆栈: {ex.StackTrace}");
+            }
+
+            Console.WriteLine("\n按任意键退出...");
+            Console.ReadKey();
+        }
+    }
+}

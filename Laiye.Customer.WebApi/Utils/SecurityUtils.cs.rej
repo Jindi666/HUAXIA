@@ -1,0 +1,10 @@
+diff a/Laiye.Customer.WebApi/Utils/SecurityUtils.cs b/Laiye.Customer.WebApi/Utils/SecurityUtils.cs	(rejected hunks)
+@@ -114,7 +114,7 @@
+             //原报文去除TOKEN
+             dic.Remove(AUTH_TOKEN);
+             //Console.WriteLine(dic.ContainsKey(AUTH_TOKEN));
+-
++            Dictionary<String, String> sortedDic = dic.OrderBy(o => o.Key).ToDictionary(o => o.Key, p => p.Value);//排序升序
+             Dictionary<string, string>.KeyCollection keyCol = dic.Keys;
+             string str = "";
+             string value = "";

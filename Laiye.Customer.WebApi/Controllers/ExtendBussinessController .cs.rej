@@ -1,0 +1,9 @@
+diff a/Laiye.Customer.WebApi/Controllers/ExtendBussinessController .cs b/Laiye.Customer.WebApi/Controllers/ExtendBussinessController .cs	(rejected hunks)
+@@ -445,6 +445,7 @@
+             int _LicenseCount = 0;
+             int _LicenseType = 0;
+             int QueryOrderType = 1;
++
+             DateTime startDate;
+             DateTime expireDate;
+             DateTime requestDueDate;
