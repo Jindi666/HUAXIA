@@ -1,4 +1,5 @@
-﻿
+﻿using FreeSql.DataAnnotations;
+
 namespace Laiye.Customer.WebApi.Model
 
 {
@@ -200,14 +201,18 @@ namespace Laiye.Customer.WebApi.Model
     // 任务失败次数Top5统计
     public class TaskFailureTop5
     {
+        [FreeSql.DataAnnotations.Column(Name = "DEPTNAME")]
         public string deptName { get; set; }        // 部门
 
-        public string flowName { get; set; }       // 流程名称       
+        [FreeSql.DataAnnotations.Column(Name = "FLOWNAME")]
+        public string flowName { get; set; }       // 流程名称
 
+        [FreeSql.DataAnnotations.Column(Name = "TASKFAIL")]
         public long taskFail { get; set; }         // 失败次数
 
+        [FreeSql.DataAnnotations.Column(Name = "QUERYTIME")]
         public string queryTime { get; set; }      // 失败时间
-       
+
     }
 
     // 任务失败次数Top5统计

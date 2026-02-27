@@ -49,24 +49,24 @@ namespace Laiye.Customer.WebApi.Utils
         };
 
         /// <summary>
-        /// RPA模式下的表列表(原MySQL中的uibot_rpa库)
-        /// 注意：需要同时转换schema和表名
-        /// - MySQL: uibot_rpa.tbl_user_worker -> 达梦: RPA.TBL_CMD_ATTENDED_WORKER
-        /// - MySQL: uibot_rpa.tbl_worker -> 达梦: RPA.TBL_CMD_WORKER
+        /// RPA模式下的表列表
+        /// 注意：这些表已经在SQL语句中明确指定了 RPA. 前缀，不再需要自动添加
+        /// - RPA.tbl_cmd_attended_worker (人机交互worker)
+        /// - RPA.tbl_cmd_worker (无人值守worker)
         /// </summary>
         private static readonly string[] RpaTables = new[]
         {
-            "tbl_user_worker",   // 需要映射到 RPA.TBL_CMD_ATTENDED_WORKER
-            "tbl_worker"         // 需要映射到 RPA.TBL_CMD_WORKER
+            "tbl_cmd_attended_worker",   // RPA.tbl_cmd_attended_worker (人机交互)
+            "tbl_cmd_worker"              // RPA.tbl_cmd_worker (无人值守)
         };
 
         /// <summary>
         /// RPA表名映射字典(MySQL表名 -> 达梦表名)
+        /// 注意：已禁用自动映射，SQL语句中已明确使用正确的表名
         /// </summary>
         private static readonly System.Collections.Generic.Dictionary<string, string> RpaTableMapping = new()
         {
-            { "tbl_user_worker", "TBL_CMD_ATTENDED_WORKER" },
-            { "tbl_worker", "TBL_CMD_WORKER" }
+            // 已禁用映射，使用原表名
         };
 
         /// <summary>
@@ -179,38 +179,11 @@ namespace Laiye.Customer.WebApi.Utils
             result = Regex.Replace(result, @"rpa\.", "RPA.", RegexOptions.IgnoreCase);
             result = Regex.Replace(result, @"huaxia\.", "HUAXIA.", RegexOptions.IgnoreCase);
 
-            // 处理RPA表的schema和表名映射
-            foreach (var mapping in RpaTableMapping)
+            // 注意：由于SQL语句中已明确添加了 HUAXIA. 和 RPA. 前缀，此处不再自动添加
+            // 只处理没有schema前缀的旧SQL语句（兼容性保留）
+            if (!Regex.IsMatch(result, @"(HUAXIA|RPA)\.", RegexOptions.IgnoreCase))
             {
-                var oldTable = mapping.Key;
-                var newTable = mapping.Value;
-
-                // 匹配 uibot_rpa.tbl_user_worker 或 rpa.tbl_user_worker
-                // 替换为 RPA.TBL_CMD_ATTENDED_WORKER
-                var pattern = $@"(?<=\bRPA\.){Regex.Escape(oldTable)}(?=[\s),]|$)";
-                result = Regex.Replace(result, pattern, newTable, RegexOptions.IgnoreCase);
-            }
-
-            // 已经有正确schema前缀的表名不需要处理
-            if (Regex.IsMatch(result, @"(HUAXIA|RPA)\.", RegexOptions.IgnoreCase))
-            {
-                // 检查是否有表没有schema前缀,如果有则继续处理
-                foreach (var table in HuaxiaTables)
-                {
-                    // 匹配没有schema前缀的表名
-                    var pattern = $@"(?<=[\s,(])(?!(HUAXIA|RPA)\.){Regex.Escape(table)}(?=[\s),]|$)";
-                    result = Regex.Replace(result, pattern, $"HUAXIA.{table}", RegexOptions.IgnoreCase);
-                }
-
-                foreach (var table in RpaTables)
-                {
-                    var pattern = $@"(?<=[\s,(])(?!(HUAXIA|RPA)\.){Regex.Escape(table)}(?=[\s),]|$)";
-                    result = Regex.Replace(result, pattern, $"RPA.{table}", RegexOptions.IgnoreCase);
-                }
-            }
-            else
-            {
-                // 没有任何schema前缀,为所有表添加前缀
+                // 没有任何schema前缀,为所有表添加前缀（兼容旧代码）
                 foreach (var table in HuaxiaTables)
                 {
                     var pattern = $@"(?<=[\s,(]){Regex.Escape(table)}(?=[\s),]|$)";

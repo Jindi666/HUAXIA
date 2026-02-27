@@ -67,7 +67,7 @@ namespace Laiye.Customer.WebApi.Controllers
             var result = "notPass";
             if (!string.IsNullOrEmpty(userLoginId)) {
                 StringBuilder sb = new StringBuilder();
-                sb.append("  select user_login_id as userLoginId,current_password as currentPassword from user_login ");
+                sb.append("  select user_login_id as userLoginId,current_password as currentPassword from HUAXIA.user_login ");
                 sb.append(" where user_login_id = '" + userLoginId + "'");
 
                 var sql = sb.toString();
@@ -102,7 +102,7 @@ namespace Laiye.Customer.WebApi.Controllers
             if (!string.IsNullOrEmpty(userLoginId))
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append("  select user_login_id as userLoginId,current_password as currentPassword from user_login ");
+                sb.append("  select user_login_id as userLoginId,current_password as currentPassword from HUAXIA.user_login ");
                 sb.append(" where user_login_id = '" + userLoginId + "'");
                 var sql = sb.toString();
 
@@ -143,7 +143,7 @@ namespace Laiye.Customer.WebApi.Controllers
             if (!string.IsNullOrEmpty(userLoginId))
             {
                 StringBuilder sb = new StringBuilder();
-                sb.append("  select user_login_id as userLoginId,current_password as currentPassword from user_login ");
+                sb.append("  select user_login_id as userLoginId,current_password as currentPassword from HUAXIA.user_login ");
                 sb.append(" where user_login_id = '" + userLoginId + "'");
 
                 var sql = sb.toString();
@@ -204,9 +204,9 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select today_tasksuccess as todayTasksuccess,today_taskfailed as todayTaskfailed,today_taskrunning as todayTaskrunning,today_taskdeploying as todayTaskdeploying from t_dashboard_result_topinfo_today_runinfo ");
+                sb1.append(" select today_tasksuccess as todayTasksuccess,today_taskfailed as todayTaskfailed,today_taskrunning as todayTaskrunning,today_taskdeploying as todayTaskdeploying from HUAXIA.t_dashboard_result_topinfo_today_runinfo ");
                 sb1.append(" where update_date=DATE_FORMAT(NOW(),'%Y-%m-%d')  ");
-                sb1.append(" and update_time=(select max(update_time) from t_dashboard_result_topinfo_today_runinfo  ");
+                sb1.append(" and update_time=(select max(update_time) from HUAXIA.t_dashboard_result_topinfo_today_runinfo  ");
                 sb1.append("  where update_date=DATE_FORMAT(NOW(),'%Y-%m-%d')) ");
                 var sql1 = sb1.toString();
                 var todayRuninfo = conn.Select<TodayRuninfo>().WithSql(@sql1).ToOne();
@@ -252,7 +252,7 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select flowCount,totalTask,taskSucceed,taskFailed,laborTime,taskSuccessRate,flow_deptcount as flowDeptcount,usercount from t_dashboard_result_topinfo where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb1.append(" select flowCount,totalTask,taskSucceed,taskFailed,laborTime,taskSuccessRate,flow_deptcount as flowDeptcount,usercount from HUAXIA.t_dashboard_result_topinfo where update_date=date_format(NOW(),'%Y-%m-%d') ");
                 var sql1 = sb1.toString();
                 var taskFlowBean = conn.Select<TaskFlowBean>().WithSql(@sql1).ToOne();
                 if (taskFlowBean == null) {
@@ -290,7 +290,7 @@ namespace Laiye.Customer.WebApi.Controllers
             {
                 StringBuilder sb1 = new StringBuilder();
                 sb1.append(" select dep_name as deptName, usernum as userNum,workernum as workerNum,tasknum as taskNum, ");
-                sb1.append(" flownum as flowNum,savingWorkingHour as workHour from t_dashboard_result_TaskFinish_Department where update_date=date_format(NOW(),'%Y-%m-%d')");
+                sb1.append(" flownum as flowNum,savingWorkingHour as workHour from HUAXIA.t_dashboard_result_TaskFinish_Department where update_date=date_format(NOW(),'%Y-%m-%d')");
                 var sql1 = sb1.toString();
                 var query = conn.Select<TaskFinishBean>().WithSql(@sql1).ToList();
 
@@ -338,29 +338,29 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 // 人机交互在线
-                // 注意: 达梦数据库中TBL_CMD_ATTENDED_WORKER表使用IS_ONLINE字段而不是worker_state
+                // 注意: 达梦数据库中tbl_cmd_attended_worker表使用IS_ONLINE字段而不是worker_state
                 // IS_ONLINE=1 表示在线, IS_ONLINE=0 或 NULL 表示离线
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select count(*) as manMachineOnline  from uibot_rpa.tbl_user_worker where IS_ONLINE = 1  ");
+                sb1.append(" select count(*) as manMachineOnline  from RPA.tbl_cmd_attended_worker where IS_ONLINE = 1  ");
                 var sql1 = sb1.toString();
                 var manMachineBean = conn.Select<ManOnlineBean>().WithSql(@sql1).ToOne();
 
                 // 人机交互离线
                 StringBuilder sb2 = new StringBuilder();
-                sb2.append(" select count(*) as manMachineNotOnline  from uibot_rpa.tbl_user_worker where (IS_ONLINE = 0 OR IS_ONLINE IS NULL)  ");
+                sb2.append(" select count(*) as manMachineNotOnline  from RPA.tbl_cmd_attended_worker where (IS_ONLINE = 0 OR IS_ONLINE IS NULL)  ");
                 var sql2 = sb2.toString();
                 var manNotOnlineBean = conn.Select<ManNotOnlineBean>().WithSql(@sql2).ToOne();
 
                 // 无人值守在线
-                // 注意: TBL_CMD_WORKER表有WORKER_STATE和WORKER_TYPE字段,保持原查询逻辑
+                // 注意: tbl_cmd_worker表使用IS_DELETED字段判断是否删除,worker_state判断在线状态
                 StringBuilder sb3 = new StringBuilder();
-                sb3.append(" select count(*) as unmannedOnline  from uibot_rpa.tbl_worker where worker_type=2 and worker_state=2 ");
+                sb3.append(" select count(*) as unmannedOnline  from RPA.tbl_cmd_worker where (IS_DELETED = 0 OR IS_DELETED IS NULL) and worker_state=2 ");
                 var sql3 = sb3.toString();
                 var unManOnlineBean = conn.Select<UnManOnlineBean>().WithSql(@sql3).ToOne();
 
                 // 无人值守离线
                 StringBuilder sb4 = new StringBuilder();
-                sb4.append(" select count(*) as unmannedNotOnline from uibot_rpa.tbl_worker where worker_type=2 and worker_state=3 ");
+                sb4.append(" select count(*) as unmannedNotOnline from RPA.tbl_cmd_worker where (IS_DELETED = 0 OR IS_DELETED IS NULL) and worker_state=3 ");
                 var sql4 = sb4.toString();
                 var unManNotOnlineBean = conn.Select<UnManNotOnlineBean>().WithSql(@sql4).ToOne();
 
@@ -391,7 +391,7 @@ namespace Laiye.Customer.WebApi.Controllers
             {
                 var dlist = new List<TaskSuccRateDepartmentBean>();
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select dep_id as depId,dep_name as deptName,totalTask,totalSucc,succRatePercent from t_dashboard_result_TaskSuccRate_Department  where update_date=date_format(NOW(),'%Y-%m-%d')");
+                sb1.append(" select dep_id as depId,dep_name as deptName,totalTask,totalSucc,succRatePercent from HUAXIA.t_dashboard_result_TaskSuccRate_Department  where update_date=date_format(NOW(),'%Y-%m-%d')");
                 var sql1 = sb1.toString();
                 var query = conn.Select<TaskSuccRateDepartmentBean>().WithSql(@sql1).ToList();
 
@@ -436,7 +436,7 @@ namespace Laiye.Customer.WebApi.Controllers
             {
                 var dlist = new List<SavingWorkHourDepBean>();
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select dep_id as depId,depname as deptName,savingtime from t_dashboard_result_SavingWorkHourDep_Top10 where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb1.append(" select dep_id as depId,depname as deptName,savingtime from HUAXIA.t_dashboard_result_SavingWorkHourDep_Top10 where update_date=date_format(NOW(),'%Y-%m-%d') ");
                 var sql1 = sb1.toString();
                 var query = conn.Select<SavingWorkHourDepBean>().WithSql(@sql1).ToList();
 
@@ -473,7 +473,7 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select depname as deptName,TotalTaskCount as taskCount from t_dashboard_result_Task_Top6Department where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb1.append(" select depname as deptName,TotalTaskCount as taskCount from HUAXIA.t_dashboard_result_Task_Top6Department where update_date=date_format(NOW(),'%Y-%m-%d') ");
                 var sql1 = sb1.toString();
                 var taskTop6List = conn.Select<TaskTop6Bean>().WithSql(@sql1).ToList();
                 return new BaseResponse<List<TaskTop6Bean>> { data = taskTop6List };
@@ -497,7 +497,7 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select dep_name as deptName,TotalFlowCount as flowCount from t_dashboard_result_Flow_Top6Department where update_date=date_format(NOW(),'%Y-%m-%d')" );
+                sb1.append(" select dep_name as deptName,TotalFlowCount as flowCount from HUAXIA.t_dashboard_result_Flow_Top6Department where update_date=date_format(NOW(),'%Y-%m-%d')" );
                 var sql1 = sb1.toString();
                 var taskTop6List = conn.Select<FlowTop6Bean>().WithSql(@sql1).ToList();
 
@@ -521,7 +521,7 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,taskCount from t_dashboard_result_TaskSuccRate_7days where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb1.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,taskCount from HUAXIA.t_dashboard_result_TaskSuccRate_7days where update_date=date_format(NOW(),'%Y-%m-%d') ");
                 var sql1 = sb1.toString();
                 var taskSuccRateList = conn.Select<TaskSuccRate7daysBean>().WithSql(@sql1).ToList();
 
@@ -545,7 +545,7 @@ namespace Laiye.Customer.WebApi.Controllers
             {
                 // 七天成功率
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,taskCount from t_dashboard_result_TaskSuccRate_7days where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb1.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,taskCount from HUAXIA.t_dashboard_result_TaskSuccRate_7days where update_date=date_format(NOW(),'%Y-%m-%d') ");
                 var sql1 = sb1.toString();
                 var taskSuccRatekList = conn.Select<TaskSuccRateBean>().WithSql(@sql1).ToList();
 

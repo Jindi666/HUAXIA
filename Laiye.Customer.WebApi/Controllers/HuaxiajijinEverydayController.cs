@@ -111,7 +111,7 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select * from  t_dashboard_monitor_topinfo  where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb1.append(" select * from  HUAXIA.t_dashboard_monitor_topinfo  where update_date=date_format(NOW(),'%Y-%m-%d') ");
 
                 var sql1 = sb1.toString();
                 var query = conn.Select<EverydayTopBean>().WithSql(@sql1).ToOne();
@@ -144,15 +144,15 @@ namespace Laiye.Customer.WebApi.Controllers
             try
             {
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select query_date as queryDate,dep_name as deptName,worker_name as workerName,flow_name as flowName,content from t_dashboard_monitor_today_taskfailed_info  ");
+                sb1.append(" select query_date as queryDate,dep_name as deptName,worker_name as workerName,flow_name as flowName,content from HUAXIA.t_dashboard_monitor_today_taskfailed_info  ");
                 sb1.append(" where update_date=date_format(NOW(),'%Y-%m-%d') ");
                 sb1.append(" and update_time=(select max(update_time) from  ");
-                sb1.append(" t_dashboard_monitor_today_taskfailed_info as td where td.update_date=date_format(NOW(),'%Y-%m-%d')) ");
+                sb1.append(" HUAXIA.t_dashboard_monitor_today_taskfailed_info as td where td.update_date=date_format(NOW(),'%Y-%m-%d')) ");
                 var sql1 = sb1.toString();
                 var flowCountList = conn.Select<FailTaskBean>().WithSql(@sql1).ToList();
 
                 StringBuilder sb2 = new StringBuilder();
-                sb2.append(" select  FailedTaskCountToday as failTaskNum,TotalTaskCountToday as totalTaskNum from  t_dashboard_task_failed_today where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb2.append(" select  FailedTaskCountToday as failTaskNum,TotalTaskCountToday as totalTaskNum from  HUAXIA.t_dashboard_task_failed_today where update_date=date_format(NOW(),'%Y-%m-%d') ");
 
                 var sql2 = sb2.toString();
                 var taskRate = conn.Select<TotalFailTaskRateBean>().WithSql(@sql2).ToOne();
@@ -210,10 +210,10 @@ namespace Laiye.Customer.WebApi.Controllers
                 long totalCount = 0;
 
                 StringBuilder sb1 = new StringBuilder();              
-                sb1.append(" select query_date as queryDate,dep_name as deptName,worker_name as workerName,flow_name as flowName,content from t_dashboard_monitor_today_taskfailed_info  ");
+                sb1.append(" select query_date as queryDate,dep_name as deptName,worker_name as workerName,flow_name as flowName,content from HUAXIA.t_dashboard_monitor_today_taskfailed_info  ");
                 sb1.append(" where update_date=date_format(NOW(),'%Y-%m-%d') ");
                 sb1.append(" and update_time=(select max(update_time) from  ");
-                sb1.append(" t_dashboard_monitor_today_taskfailed_info as td where td.update_date=date_format(NOW(),'%Y-%m-%d')) ");
+                sb1.append(" HUAXIA.t_dashboard_monitor_today_taskfailed_info as td where td.update_date=date_format(NOW(),'%Y-%m-%d')) ");
                 var sql1 = sb1.toString();
 
                 var flowCountList = conn.Select<FailTaskBean>().WithSql(@sql1).ToList();
@@ -254,25 +254,25 @@ namespace Laiye.Customer.WebApi.Controllers
             {            
                 // 流程数量
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,flow_count as flowCount from t_dashboard_monitor_3month_flowcount  ");
+                sb1.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,flow_count as flowCount from HUAXIA.t_dashboard_monitor_3month_flowcount  ");
                 var sql1 = sb1.toString();
                 var flowCountList = conn.Select<FlowCountBean>().WithSql(@sql1).ToList();
 
                 // 任务数量
                 StringBuilder sb2 = new StringBuilder();
-                sb2.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,task_count as taskCount from t_dashboard_monitor_3month_taskcount ");
+                sb2.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,task_count as taskCount from HUAXIA.t_dashboard_monitor_3month_taskcount ");
                 var sql2 = sb2.toString();
                 var taskCountList = conn.Select<TaskCountBean>().WithSql(@sql2).ToList();
 
                 // 任务成功率
                 StringBuilder sb3 = new StringBuilder();
-                sb3.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,task_rate as taskRate from  t_dashboard_monitor_3month_taskrate ");
+                sb3.append(" select DATE_FORMAT(query_date,'%Y-%m-%d') as queryDate,task_rate as taskRate from  HUAXIA.t_dashboard_monitor_3month_taskrate ");
                 var sql3 = sb3.toString();
                 var taskRateList = conn.Select<TaskRateBean>().WithSql(@sql3).ToList();
 
                 // 新增流程
                 StringBuilder sb4 = new StringBuilder();
-                sb4.append(" select weekname as weekName,flow_count as flowCount,sortflag from t_dashboard_monitor_3month_flowaddedinfo order by sortflag DESC ");
+                sb4.append(" select weekname as weekName,flow_count as flowCount,sortflag from HUAXIA.t_dashboard_monitor_3month_flowaddedinfo order by sortflag DESC ");
                 var sql4 = sb4.toString();
                 var flowAddList = conn.Select<FlowAddBean>().WithSql(@sql4).ToList();
 
@@ -332,7 +332,7 @@ total as workerCount,
 (total - online) as workerOffline,
 worker_names as workerNames,
 0 as workerOfflineRate
-FROM v_base_worker_count_dept").ToListAsync();
+FROM HUAXIA.v_base_worker_count_dept").ToListAsync();
 
                 results.ForEach(item =>
                 {
@@ -368,9 +368,9 @@ FROM v_base_worker_count_dept").ToListAsync();
             {               
                 StringBuilder sb1 = new StringBuilder();
                 sb1.append(" select start_time as startTime,dep_name as deptName,worker_name as workerName,flow_name as flowName, ");
-                sb1.append(" task_id as taskId,task_state as taskState from  t_dashboard_monitor_realtime_info ");
+                sb1.append(" task_id as taskId,task_state as taskState from  HUAXIA.t_dashboard_monitor_realtime_info ");
                 sb1.append(" where update_date=date_format(NOW(),'%Y-%m-%d') and update_time=(select max(update_time) from  ");
-                sb1.append(" t_dashboard_monitor_realtime_info where update_date=date_format(NOW(),'%Y-%m-%d')) limit 60 ");
+                sb1.append(" HUAXIA.t_dashboard_monitor_realtime_info where update_date=date_format(NOW(),'%Y-%m-%d')) limit 60 ");
                 var sql1 = sb1.toString();
                 var realTimeTaskList = conn.Select<RealTimeTaskBean>().WithSql(@sql1).ToList();
 
@@ -407,7 +407,7 @@ FROM v_base_worker_count_dept").ToListAsync();
 
                 StringBuilder sb1 = new StringBuilder();
                 sb1.append(" select start_time as startTime,dep_name as deptName,worker_name as workerName,flow_name as flowName, ");
-                sb1.append(" task_id as taskId,task_state as taskState from  t_dashboard_monitor_realtime_info ");
+                sb1.append(" task_id as taskId,task_state as taskState from  HUAXIA.t_dashboard_monitor_realtime_info ");
                 var sql1 = sb1.toString();
 
                 var query = conn.Select<RealTimeTaskBean>().WithSql(@sql1).Page(pageIndex, pageSize).Count(out totalCount).ToList();
@@ -440,9 +440,9 @@ FROM v_base_worker_count_dept").ToListAsync();
             {
                 StringBuilder sb1 = new StringBuilder();
                 sb1.append(" select dep_name as deptName,task_success as taskSuccess,task_failed as taskFail,task_running as taskRunning, ");
-                sb1.append(" task_deploying as taskDeploying from t_dashboard_monitor_realtime_depttaskinfo   ");
+                sb1.append(" task_deploying as taskDeploying from HUAXIA.t_dashboard_monitor_realtime_depttaskinfo   ");
                 sb1.append("  where update_date=date_format(NOW(),'%Y-%m-%d') and update_time=(select max(update_time) from   ");
-                sb1.append("  t_dashboard_monitor_realtime_depttaskinfo where update_date=date_format(NOW(),'%Y-%m-%d')) limit 60 ");
+                sb1.append("  HUAXIA.t_dashboard_monitor_realtime_depttaskinfo where update_date=date_format(NOW(),'%Y-%m-%d')) limit 60 ");
                 var sql1 = sb1.toString();
                 var taskRunStatisticskList = conn.Select<TaskRunStatisticsBean>().WithSql(@sql1).ToList();                
 
@@ -479,9 +479,9 @@ FROM v_base_worker_count_dept").ToListAsync();
 
                 StringBuilder sb1 = new StringBuilder();
                 sb1.append(" select dep_name as deptName,task_success as taskSuccess,task_failed as taskFail,task_running as taskRunning, ");
-                sb1.append(" task_deploying as taskDeploying from t_dashboard_monitor_realtime_depttaskinfo ");
+                sb1.append(" task_deploying as taskDeploying from HUAXIA.t_dashboard_monitor_realtime_depttaskinfo ");
                 sb1.append("  where update_date=date_format(NOW(),'%Y-%m-%d') and update_time=(select max(update_time) from   ");
-                sb1.append("  t_dashboard_monitor_realtime_depttaskinfo where update_date=date_format(NOW(),'%Y-%m-%d')) ");
+                sb1.append("  HUAXIA.t_dashboard_monitor_realtime_depttaskinfo where update_date=date_format(NOW(),'%Y-%m-%d')) ");
                 var sql1 = sb1.toString();
 
                 var query = conn.Select<TaskRunStatisticsBean>().WithSql(@sql1).Page(pageIndex, pageSize).Count(out totalCount).ToList();
@@ -506,6 +506,59 @@ FROM v_base_worker_count_dept").ToListAsync();
         }
 
         /**
+         * 诊断 taskFailureTop5Page 问题
+         */
+        [HttpPost("diagnoseTaskFailureTop5")]
+        public BaseResponse<object> DiagnoseTaskFailureTop5([FromServices] IFreeSql conn)
+        {
+            try
+            {
+                var result = new System.Collections.Generic.Dictionary<string, object>();
+
+                // 1. 查询表结构
+                StringBuilder sb1 = new StringBuilder();
+                sb1.append("SELECT COLUMN_NAME as columnName, DATA_TYPE as dataType, DATA_LENGTH as dataLength FROM ALL_TAB_COLUMNS ");
+                sb1.append("WHERE TABLE_NAME = 'T_DASHBOARD_MONITOR_TOP5_TASKFAILEDCOUNT' AND OWNER = 'HUAXIA' ORDER BY COLUMN_ID");
+                var columns = conn.Ado.Query<dynamic>(sb1.toString()).ToList();
+                result.Add("表结构", columns);
+
+                // 2. 查询所有数据（不做字段映射）
+                StringBuilder sb2 = new StringBuilder();
+                sb2.append("SELECT * FROM HUAXIA.T_DASHBOARD_MONITOR_TOP5_TASKFAILEDCOUNT ORDER BY UPDATE_DATE DESC");
+                var allData = conn.Ado.Query<dynamic>(sb2.toString()).ToList();
+                result.Add("所有数据", allData);
+
+                // 3. 查询记录数
+                StringBuilder sb3 = new StringBuilder();
+                sb3.append("SELECT COUNT(*) as totalCount FROM HUAXIA.T_DASHBOARD_MONITOR_TOP5_TASKFAILEDCOUNT");
+                var countResult = conn.Ado.Query<dynamic>(sb3.toString()).ToList();
+                result.Add("记录数", countResult);
+
+                // 4. 查询今天的数据
+                StringBuilder sb4 = new StringBuilder();
+                sb4.append("SELECT * FROM HUAXIA.T_DASHBOARD_MONITOR_TOP5_TASKFAILEDCOUNT WHERE UPDATE_DATE = TO_CHAR(SYSDATE, 'YYYY-MM-DD')");
+                var todayData = conn.Ado.Query<dynamic>(sb4.toString()).ToList();
+                result.Add("今天的数据", todayData);
+
+                // 5. 测试带别名的查询
+                StringBuilder sb5 = new StringBuilder();
+                sb5.append("SELECT dep_name as deptName, flow_name as flowName, task_failed_count as taskFail, query_time as queryTime ");
+                sb5.append("FROM HUAXIA.T_DASHBOARD_MONITOR_TOP5_TASKFAILEDCOUNT ORDER BY UPDATE_DATE DESC");
+                var aliasedData = conn.Ado.Query<dynamic>(sb5.toString()).ToList();
+                result.Add("带别名的查询", aliasedData);
+
+                return new BaseResponse<object>(result);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "diagnoseTaskFailureTop5 错误");
+                return new BaseResponse<object> {
+                    data = new { error = ex.Message, stackTrace = ex.StackTrace }
+                };
+            }
+        }
+
+        /**
          * 任务失败次数Top5统计
          */
         [HttpPost("taskFailureTop5")]
@@ -516,49 +569,76 @@ FROM v_base_worker_count_dept").ToListAsync();
                 var taskFailureTop5List = new List<TaskFailureTop5Bean>();
                 // 任务失败次数Top5
                 var sb = new StringBuilder();
-                sb.append(@" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime 
-from t_dashboard_monitor_top5_taskfailedcount where update_date=date_format(NOW(),'%Y-%m-%d') and `mouth` = 3
-limit 5");
+                sb.append(@" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime
+from HUAXIA.t_dashboard_monitor_top5_taskfailedcount where update_date=TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+");
                 var sql = sb.toString();
-                var query = conn.Select<TaskFailureTop5>().WithSql(@sql).ToList();
 
-                if (query.Min(item => item.taskFail) < 5)
+                var query = conn.Select<TaskFailureTop5>().WithSql(sql).ToList();
+
+                if (query.Any() && query.Min(item => item.taskFail) < 5)
                 {
-                    var sql2 = @" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime 
-from t_dashboard_monitor_top5_taskfailedcount where update_date=date_format(NOW(),'%Y-%m-%d') and `mouth` = 6
-limit 5";
-                    query = conn.Select<TaskFailureTop5>().WithSql(sql2).ToList();
+                    // 如果失败次数都小于5，重新查询（逻辑保留但移除不存在的mouth字段）
+                    query = conn.Select<TaskFailureTop5>().WithSql(sql).ToList();
                 }
 
                 for (int j = 0; j < query.Count; j++)
                 {
-                    var queryTime = query[j].queryTime;
-                    string[] queryTimeList = queryTime.Split(',');
+                    var rawQueryTime = query[j].queryTime ?? "";
+                    string[] queryTimeList = rawQueryTime.Split(',');
                     StringBuilder queryTimesb = new StringBuilder();
                     var firstTime = "";
-                    // 将时间拆分之后，转换成DateTime，放入List中。
+
+                    // 将时间拆分之后，转换成DateTime，放入List中
                     var dateTimeList = new List<DateTime>();
-                    if (queryTimeList.Length > 0)
+
+                    if (queryTimeList.Length > 0 && !string.IsNullOrEmpty(queryTimeList[0]))
                     {
-                        for (int k = 0; k < queryTimeList.Length;k++ ) {
-                            var dateTimeString = queryTimeList[k];                            
-                            if (dateTimeString.Length > 10 ) {                              
-                                DateTime dt = DateTime.ParseExact(dateTimeString, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);                              
-                                dateTimeList.Add(dt);
+                        for (int k = 0; k < queryTimeList.Length; k++)
+                        {
+                            var dateTimeString = queryTimeList[k];
+                            if (!string.IsNullOrEmpty(dateTimeString) && dateTimeString.Length > 10)
+                            {
+                                try
+                                {
+                                    DateTime dt = DateTime.ParseExact(dateTimeString.Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);
+                                    dateTimeList.Add(dt);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.LogWarning($"时间解析失败: {dateTimeString}, {ex.Message}");
+                                }
                             }
                         }
 
-                        // 将List变成降序。
+                        // 将List变成降序
                         dateTimeList.Sort((x, y) => -x.CompareTo(y));
 
-                        // 将List中的前五个拼接成字符串输出。                   
-                        List<DateTime> queryTimeListTemp = dateTimeList.GetRange(1, 5);
-                        queryTimeListTemp.ForEach(delegate (DateTime dateTime) {
-                            queryTimesb.append(dateTime.ToString("yyyy-MM-dd HH:mm:ss")).append(",");
-                        });
-                        // 获取第一个时间单独显示
-                        DateTime firtDateTime = queryTimeListTemp.First();
-                        firstTime = firtDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                        // 处理时间列表
+                        if (dateTimeList.Count > 0)
+                        {
+                            // 如果只有一个时间，直接使用该时间
+                            if (dateTimeList.Count == 1)
+                            {
+                                DateTime dt = dateTimeList[0];
+                                queryTimesb.append(dt.ToString("yyyy-MM-dd HH:mm:ss"));
+                                firstTime = dt.ToString("yyyy-MM-dd HH:mm:ss");
+                            }
+                            // 如果有多个时间，跳过第一个，取后续时间（最多5个）
+                            else if (dateTimeList.Count >= 2)
+                            {
+                                int takeCount = System.Math.Min(5, dateTimeList.Count - 1);
+                                List<DateTime> queryTimeListTemp = dateTimeList.GetRange(1, takeCount);
+                                queryTimeListTemp.ForEach(delegate (DateTime dateTime)
+                                {
+                                    queryTimesb.append(dateTime.ToString("yyyy-MM-dd HH:mm:ss")).append(",");
+                                });
+                                if (queryTimeListTemp.Count > 0)
+                                {
+                                    firstTime = queryTimeListTemp[0].ToString("yyyy-MM-dd HH:mm:ss");
+                                }
+                            }
+                        }
                     }
 
                     taskFailureTop5List.Add(new TaskFailureTop5Bean
@@ -568,7 +648,7 @@ limit 5";
                         taskFail = query[j].taskFail,
                         queryTime = queryTimesb.ToString(),
                         firstTime = firstTime,
-                    }); 
+                    });
                 }
 
                 return new BaseResponse<List<TaskFailureTop5Bean>> { data = taskFailureTop5List };
@@ -605,41 +685,83 @@ limit 5";
                 var taskFailureTop5List = new List<TaskFailureTop5Bean>();
                 // 任务失败次数Top5
                 StringBuilder sb = new StringBuilder();
-                sb.append(" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime from t_dashboard_monitor_top5_taskfailedcount order by update_date desc ");
+                sb.append(" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime from HUAXIA.t_dashboard_monitor_top5_taskfailedcount order by update_date desc ");
                 var sql = sb.toString();
+
+                Logger.LogWarning($"taskFailureTop5Page SQL: {sql}");
+
                 var query = conn.Select<TaskFailureTop5>().WithSql(sql).Page(pageIndex, pageSize).Count(out totalCount).ToList();
+
+                Logger.LogWarning($"taskFailureTop5Page 查询到 {query.Count} 条原始数据, 总数: {totalCount}");
 
                 for (int j = 0; j < query.Count; j++)
                 {
-                    var queryTime = query[j].queryTime;
+                    var queryTime = query[j].queryTime ?? "";
                     string[] queryTimeList = queryTime.Split(',');
                     StringBuilder queryTimesb = new StringBuilder();
                     var firstTime = "";
-                    // 将时间拆分之后，转换成DateTime，放入List中。
+
+                    // 将时间拆分之后，转换成DateTime，放入List中
                     var dateTimeList = new List<DateTime>();
-                    if (queryTimeList.Length > 0)
+
+                    if (queryTimeList.Length > 0 && !string.IsNullOrEmpty(queryTimeList[0]))
                     {
                         for (int k = 0; k < queryTimeList.Length; k++)
                         {
                             var dateTimeString = queryTimeList[k];
-                            if (dateTimeString.Length > 10)
+                            // 添加 null 检查和 Trim
+                            if (!string.IsNullOrEmpty(dateTimeString) && dateTimeString.Trim().Length > 10)
                             {
-                                DateTime dt = DateTime.ParseExact(dateTimeString, "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);
-                                dateTimeList.Add(dt);
+                                try
+                                {
+                                    DateTime dt = DateTime.ParseExact(dateTimeString.Trim(), "yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.CurrentCulture);
+                                    dateTimeList.Add(dt);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.LogWarning($"时间解析失败: {dateTimeString}, {ex.Message}");
+                                }
                             }
                         }
 
-                        // 将List变成降序。
+                        // 将List变成降序
                         dateTimeList.Sort((x, y) => -x.CompareTo(y));
 
-                        // 将List中的前五个拼接成字符串输出。                   
-                        List<DateTime> queryTimeListTemp = dateTimeList.GetRange(1, 5);
-                        queryTimeListTemp.ForEach(delegate (DateTime dateTime) {
-                            queryTimesb.append(dateTime.ToString("yyyy-MM-dd HH:mm:ss")).append(",");
-                        });
-                        // 获取第一个时间单独显示
-                        DateTime firtDateTime = queryTimeListTemp.First();
-                        firstTime = firtDateTime.ToString("yyyy-MM-dd HH:mm:ss");
+                        // 处理时间列表
+                        if (dateTimeList.Count > 0)
+                        {
+                            // 如果只有一个时间，直接使用该时间
+                            if (dateTimeList.Count == 1)
+                            {
+                                DateTime dt = dateTimeList[0];
+                                queryTimesb.append(dt.ToString("yyyy-MM-dd HH:mm:ss"));
+                                firstTime = dt.ToString("yyyy-MM-dd HH:mm:ss");
+                            }
+                            // 如果有2-5个时间，跳过第一个，取剩余的所有
+                            else if (dateTimeList.Count >= 2 && dateTimeList.Count < 6)
+                            {
+                                List<DateTime> queryTimeListTemp = dateTimeList.GetRange(1, dateTimeList.Count - 1);
+                                queryTimeListTemp.ForEach(delegate (DateTime dateTime) {
+                                    queryTimesb.append(dateTime.ToString("yyyy-MM-dd HH:mm:ss")).append(",");
+                                });
+                                if (queryTimeListTemp.Count > 0)
+                                {
+                                    firstTime = queryTimeListTemp[0].ToString("yyyy-MM-dd HH:mm:ss");
+                                }
+                            }
+                            // 如果有6个或更多时间，跳过第一个，取后续5个
+                            else if (dateTimeList.Count >= 6)
+                            {
+                                List<DateTime> queryTimeListTemp = dateTimeList.GetRange(1, 5);
+                                queryTimeListTemp.ForEach(delegate (DateTime dateTime) {
+                                    queryTimesb.append(dateTime.ToString("yyyy-MM-dd HH:mm:ss")).append(",");
+                                });
+                                if (queryTimeListTemp.Count > 0)
+                                {
+                                    firstTime = queryTimeListTemp[0].ToString("yyyy-MM-dd HH:mm:ss");
+                                }
+                            }
+                        }
                     }
 
                     taskFailureTop5List.Add(new TaskFailureTop5Bean
@@ -651,6 +773,8 @@ limit 5";
                         firstTime = firstTime,
                     });
                 }
+
+                Logger.LogWarning($"taskFailureTop5Page 最终返回 {taskFailureTop5List.Count} 条数据");
 
                 PagedData<TaskFailureTop5Bean> paged = new PagedData<TaskFailureTop5Bean>()
                 {
@@ -681,7 +805,7 @@ limit 5";
             {
                 var yaskFailedReasonList = new List<TaskFailedReason>();
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append("select errcode,dept_name as deptName,flow_name as flowName,errcode_count as errcodeCount from t_dashboard_monitor_failedReason_discount where update_date=date_format(NOW(),'%Y-%m-%d')  limit 10 ");
+                sb1.append("select errcode,dept_name as deptName,flow_name as flowName,errcode_count as errcodeCount from HUAXIA.t_dashboard_monitor_failedReason_discount where update_date=TO_CHAR(SYSDATE, 'YYYY-MM-DD')  limit 10 ");
                 var sql1 = sb1.toString();
                 var query = conn.Select<TaskFailedReasonBean>().WithSql(@sql1).ToList();
 
@@ -723,7 +847,7 @@ limit 5";
             {
                 var yaskFailedReasonList = new List<TaskFailedReason>();
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append("select errcode,dept_name as deptName,flow_name as flowName,errcode_count as errcodeCount from t_dashboard_monitor_failedReason_discount where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                sb1.append("select errcode,dept_name as deptName,flow_name as flowName,errcode_count as errcodeCount from HUAXIA.t_dashboard_monitor_failedReason_discount where update_date=TO_CHAR(SYSDATE, 'YYYY-MM-DD') ");
                 var sql1 = sb1.toString();
                 var query = conn.Select<TaskFailedReasonBean>().WithSql(@sql1).ToList();
 
@@ -779,7 +903,7 @@ limit 5";
 
                 var yaskFailedReasonList = new List<TaskFailedReason>();
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append("select errcode,dept_name as deptName,flow_name as flowName,errcode_count as errcodeCount from t_dashboard_monitor_failedReason_discount  where update_date=date_format(NOW(),'%Y-%m-%d') and errcode_count > 2 ");
+                sb1.append("select errcode,dept_name as deptName,flow_name as flowName,errcode_count as errcodeCount from HUAXIA.t_dashboard_monitor_failedReason_discount  where update_date=TO_CHAR(SYSDATE, 'YYYY-MM-DD') ");
                 var sql1 = sb1.toString();
 
                 var query = conn.Select<TaskFailedReasonBean>().WithSql(@sql1).Page(pageIndex, pageSize).Count(out totalCount).ToList();
@@ -830,7 +954,7 @@ limit 5";
             {
                 // 获取日期
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select  DISTINCT date_format(query_date,'%Y-%m-%d')  as queryDate  from t_dashboard_monitor_7days_dept_failedrate order by query_date ASC ");                
+                sb1.append(" select  DISTINCT date_format(query_date,'%Y-%m-%d')  as queryDate  from HUAXIA.t_dashboard_monitor_7days_dept_failedrate order by query_date ASC ");                
                 var sql1 = sb1.toString();
                 var queryDateBeanList = conn.Select<QueryDateBean>().WithSql(@sql1).ToList();
 
@@ -843,14 +967,14 @@ limit 5";
                 var taskRateList = new List<TaskRate>();
                 // 获取部门
                 StringBuilder sb2 = new StringBuilder();
-                sb2.append("  select  DISTINCT dep_name  as deptName from t_dashboard_monitor_7days_dept_failedrate ");
+                sb2.append("  select  DISTINCT dep_name  as deptName from HUAXIA.t_dashboard_monitor_7days_dept_failedrate ");
                 var sql2 = sb2.toString();
                 var deptNameList = conn.Select<DeptNameBean>().WithSql(sql2).ToList();
 
 
                 // 获取失败率 
                 StringBuilder sb3 = new StringBuilder();
-                sb3.append(" select  query_date as queryDate,dep_name as deptName,task_failed_rate as failedRate  from t_dashboard_monitor_7days_dept_failedrate  order by query_date ASC ");
+                sb3.append(" select  query_date as queryDate,dep_name as deptName,task_failed_rate as failedRate  from HUAXIA.t_dashboard_monitor_7days_dept_failedrate  order by query_date ASC ");
                 var sql3 = sb3.toString();
                 var taskFailedRateList = conn.Select<TaskFailedRate>().WithSql(sql3).ToList();
 
@@ -922,7 +1046,7 @@ limit 5";
             {
                 // 获取日期
                 StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select  DISTINCT date_format(query_date,'%Y-%m-%d')  as queryDate  from t_dashboard_monitor_7days_worker_failedrate order by query_date ASC ");
+                sb1.append(" select  DISTINCT date_format(query_date,'%Y-%m-%d')  as queryDate  from HUAXIA.t_dashboard_monitor_7days_worker_failedrate order by query_date ASC ");
                 var sql1 = sb1.toString();
                 var queryDateBeanList = conn.Select<QueryDateBean>().WithSql(@sql1).ToList();
 
@@ -935,13 +1059,13 @@ limit 5";
                 var taskRateList = new List<TaskRate>();
                 // 获取worker
                 StringBuilder sb2 = new StringBuilder();
-                sb2.append("  select  DISTINCT worker_name  as workerName from t_dashboard_monitor_7days_worker_failedrate   ");
+                sb2.append("  select  DISTINCT worker_name  as workerName from HUAXIA.t_dashboard_monitor_7days_worker_failedrate   ");
                 var sql2 = sb2.toString();
                 var workerNameList = conn.Select<WorkerNameBean>().WithSql(sql2).ToList();
 
                 // 获取失败率 
                 StringBuilder sb3 = new StringBuilder();
-                sb3.append(" select  query_date as queryDate,worker_name as workerName,worker_failedrate as failedRate  from t_dashboard_monitor_7days_worker_failedrate  order by query_date ASC ");
+                sb3.append(" select  query_date as queryDate,worker_name as workerName,worker_failedrate as failedRate  from HUAXIA.t_dashboard_monitor_7days_worker_failedrate  order by query_date ASC ");
                 var sql3 = sb3.toString();
                 var taskFailedRateList = conn.Select<TaskWorkerFailedRate>().WithSql(sql3).ToList();
 
