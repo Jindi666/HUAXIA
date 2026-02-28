@@ -143,19 +143,24 @@ namespace Laiye.Customer.WebApi.Controllers
         {
             try
             {
-                StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select query_date as queryDate,dep_name as deptName,worker_name as workerName,flow_name as flowName,content from HUAXIA.t_dashboard_monitor_today_taskfailed_info  ");
-                sb1.append(" where update_date=date_format(NOW(),'%Y-%m-%d') ");
-                sb1.append(" and update_time=(select max(update_time) from  ");
-                sb1.append(" HUAXIA.t_dashboard_monitor_today_taskfailed_info as td where td.update_date=date_format(NOW(),'%Y-%m-%d')) ");
-                var sql1 = sb1.toString();
-                var flowCountList = conn.Select<FailTaskBean>().WithSql(@sql1).ToList();
+                string sql1 = " SELECT TO_CHAR(query_date, 'HH24:MI:SS') AS queryDate, " +
+                              " dep_name AS deptName, worker_name AS workerName, " +
+                              " flow_name AS flowName, content " +
+                              " FROM HUAXIA.t_dashboard_monitor_today_taskfailed_info " +
+                              " WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD') " +
+                              " AND update_time = ( " +
+                              "     SELECT MAX(update_time) " +
+                              "     FROM HUAXIA.t_dashboard_monitor_today_taskfailed_info AS td " +
+                              "     WHERE td.update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD')" +
+                              " )";
 
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append(" select  FailedTaskCountToday as failTaskNum,TotalTaskCountToday as totalTaskNum from  HUAXIA.t_dashboard_task_failed_today where update_date=date_format(NOW(),'%Y-%m-%d') ");
+                var flowCountList = conn.Select<FailTaskBean>().WithSql(sql1).ToList();
 
-                var sql2 = sb2.toString();
-                var taskRate = conn.Select<TotalFailTaskRateBean>().WithSql(@sql2).ToOne();
+                string sql2 = " SELECT FailedTaskCountToday AS failTaskNum, TotalTaskCountToday AS totalTaskNum " +
+                              " FROM HUAXIA.t_dashboard_task_failed_today " +
+                              " WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD')";
+
+                var taskRate = conn.Select<TotalFailTaskRateBean>().WithSql(sql2).ToOne();
 
                 // 今日任务失败数
                 var failTaskNum = taskRate.failTaskNum;
@@ -209,15 +214,19 @@ namespace Laiye.Customer.WebApi.Controllers
 
                 long totalCount = 0;
 
-                StringBuilder sb1 = new StringBuilder();              
-                sb1.append(" select query_date as queryDate,dep_name as deptName,worker_name as workerName,flow_name as flowName,content from HUAXIA.t_dashboard_monitor_today_taskfailed_info  ");
-                sb1.append(" where update_date=date_format(NOW(),'%Y-%m-%d') ");
-                sb1.append(" and update_time=(select max(update_time) from  ");
-                sb1.append(" HUAXIA.t_dashboard_monitor_today_taskfailed_info as td where td.update_date=date_format(NOW(),'%Y-%m-%d')) ");
-                var sql1 = sb1.toString();
+                string sql1 = " SELECT TO_CHAR(query_date, 'HH24:MI:SS') AS queryDate, " +
+                              " dep_name AS deptName, worker_name AS workerName, " +
+                              " flow_name AS flowName, content " +
+                              " FROM HUAXIA.t_dashboard_monitor_today_taskfailed_info " +
+                              " WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD') " +
+                              " AND update_time = ( " +
+                              "     SELECT MAX(update_time) " +
+                              "     FROM HUAXIA.t_dashboard_monitor_today_taskfailed_info AS td " +
+                              "     WHERE td.update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD')" +
+                              " )";
 
-                var flowCountList = conn.Select<FailTaskBean>().WithSql(@sql1).ToList();
-                var query = conn.Select<FailTaskBean>().WithSql(@sql1).Page(pageIndex, pageSize).Count(out totalCount).ToList();
+                var flowCountList = conn.Select<FailTaskBean>().WithSql(sql1).ToList();
+                var query = conn.Select<FailTaskBean>().WithSql(sql1).Page(pageIndex, pageSize).Count(out totalCount).ToList();
 
                 PagedData<FailTaskBean> paged = new PagedData<FailTaskBean>()
                 {
@@ -321,27 +330,36 @@ namespace Laiye.Customer.WebApi.Controllers
 
         /**
          * 机器人分布及在线监控
+         * 使用视图：V_BASE_WORKER_DEPT_OFFLINE
+         * 字段映射：
+         *   - DEP_NAME → deptName
+         *   - WORKER_COUNT → workerCount
+         *   - WORKER_OFFLINE → workerOffline
+         *   - WORKER_OFFLINE_RATE → workerOfflineRate
+         *   - workerNames（缺失字段，使用空字符串作为固定值）
          */
         [HttpPost("robotOnlineMonitoring")]
         public async Task<BaseResponse<RobotOnlineParent>> RobotOnlineMonitoring([FromServices] IFreeSql conn)
         {
             try
             {
-                var results = await conn.Select<RobotOnlineBean>().WithSql(@"SELECT dep_name as deptName,
-total as workerCount,
-(total - online) as workerOffline,
-worker_names as workerNames,
-0 as workerOfflineRate
-FROM HUAXIA.v_base_worker_count_dept").ToListAsync();
+                var results = await conn.Select<RobotOnlineBean>().WithSql(@"
+                    SELECT
+                        DEP_NAME AS deptName,
+                        WORKER_COUNT AS workerCount,
+                        WORKER_OFFLINE AS workerOffline,
+                        WORKER_OFFLINE_RATE AS workerOfflineRate,
+                        NULL AS workerNames
+                    FROM HUAXIA.V_BASE_WORKER_DEPT_OFFLINE
+                ").ToListAsync();
 
-                results.ForEach(item =>
-                {
-                    item.workerOfflineRate = item.workerCount == 0 ? 0 : (float)item.workerOffline / (float)item.workerCount;
-                });
+                // 清空 workerNames（前端不需要此字段）
+                results.ForEach(r => r.workerNames = null);
 
+                // 按 offlineRate 降序排序
                 results = results.OrderByDescending(item => item.workerOfflineRate).ToList();
 
-                var result = new RobotOnlineParent 
+                var result = new RobotOnlineParent
                 {
                     robotOnlineBeansList = results,
                     workerCountSum = results.Sum(item => item.workerCount),
@@ -352,40 +370,50 @@ FROM HUAXIA.v_base_worker_count_dept").ToListAsync();
             }
             catch (Exception ex)
             {
-                string message = "RobotOnlineMonitoring()" + "ex:" + ex.Message;
-                Logger.LogWarning(ex, ex.Message);
+                Logger.LogWarning(ex, "RobotOnlineMonitoring() error: {Message}", ex.Message);
                 return new BaseResponse<RobotOnlineParent> { };
             }
         }
 
         /**
          * 实时任务监控
+         * 查询逻辑：获取今天最新一次更新时间的实时任务监控数据，最多返回60条
+         * 1. 筛选 update_date = 今天
+         * 2. 筛选 update_time = 今天最大的更新时间（即最后一次更新的数据快照）
          */
         [HttpPost("realTimeTaskMonitoring")]
         public BaseResponse<List<RealTimeTaskBean>> RealTimeTaskMonitoring([FromServices] IFreeSql conn)
         {
             try
-            {               
-                StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select start_time as startTime,dep_name as deptName,worker_name as workerName,flow_name as flowName, ");
-                sb1.append(" task_id as taskId,task_state as taskState from  HUAXIA.t_dashboard_monitor_realtime_info ");
-                sb1.append(" where update_date=date_format(NOW(),'%Y-%m-%d') and update_time=(select max(update_time) from  ");
-                sb1.append(" HUAXIA.t_dashboard_monitor_realtime_info where update_date=date_format(NOW(),'%Y-%m-%d')) limit 60 ");
-                var sql1 = sb1.toString();
-                var realTimeTaskList = conn.Select<RealTimeTaskBean>().WithSql(@sql1).ToList();
+            {
+                string sql = "SELECT TO_CHAR(start_time, 'HH24:MI:SS') AS startTime, " +
+                             "dep_name AS deptName, worker_name AS workerName, " +
+                             "flow_name AS flowName, task_id AS taskId, task_state AS taskState " +
+                             "FROM HUAXIA.t_dashboard_monitor_realtime_info " +
+                             "WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD') " +
+                             "AND update_time = ( " +
+                             "    SELECT MAX(update_time) " +
+                             "    FROM HUAXIA.t_dashboard_monitor_realtime_info " +
+                             "    WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD')" +
+                             ") " +
+                             "FETCH FIRST 60 ROWS ONLY";
+
+                var realTimeTaskList = conn.Select<RealTimeTaskBean>().WithSql(sql).ToList();
 
                 return new BaseResponse<List<RealTimeTaskBean>> { data = realTimeTaskList };
             }
             catch (Exception ex)
             {
-                string message = "RealTimeTaskMonitoring()" + "ex:" + ex.Message;
-                Logger.LogWarning(ex, ex.Message);
+                Logger.LogWarning(ex, "RealTimeTaskMonitoring() error: {Message}", ex.Message);
                 return new BaseResponse<List<RealTimeTaskBean>> { };
             }
         }
 
         /**
-         * 实时任务监控
+         * 实时任务监控（分页）
+         * 查询逻辑：与 realTimeTaskMonitoring 保持一致，只查询今天最新快照的数据进行分页
+         * 1. 筛选 update_date = 今天
+         * 2. 筛选 update_time = 今天最大的更新时间（即最后一次更新的数据快照）
          */
         [HttpPost("realTimeTaskMonitoringPage")]
         public BaseResult<PagedData<RealTimeTaskBean>> RealTimeTaskMonitoringPage([FromServices] IFreeSql conn, [FromBody] PageParamer request)
@@ -405,12 +433,18 @@ FROM HUAXIA.v_base_worker_count_dept").ToListAsync();
 
                 long totalCount = 0;
 
-                StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select start_time as startTime,dep_name as deptName,worker_name as workerName,flow_name as flowName, ");
-                sb1.append(" task_id as taskId,task_state as taskState from  HUAXIA.t_dashboard_monitor_realtime_info ");
-                var sql1 = sb1.toString();
+                string sql = "SELECT TO_CHAR(start_time, 'HH24:MI:SS') AS startTime, " +
+                             "dep_name AS deptName, worker_name AS workerName, " +
+                             "flow_name AS flowName, task_id AS taskId, task_state AS taskState " +
+                             "FROM HUAXIA.t_dashboard_monitor_realtime_info " +
+                             "WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD') " +
+                             "AND update_time = ( " +
+                             "    SELECT MAX(update_time) " +
+                             "    FROM HUAXIA.t_dashboard_monitor_realtime_info " +
+                             "    WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD')" +
+                             ")";
 
-                var query = conn.Select<RealTimeTaskBean>().WithSql(@sql1).Page(pageIndex, pageSize).Count(out totalCount).ToList();
+                var query = conn.Select<RealTimeTaskBean>().WithSql(sql).Page(pageIndex, pageSize).Count(out totalCount).ToList();
 
                 PagedData<RealTimeTaskBean> paged = new PagedData<RealTimeTaskBean>()
                 {
@@ -420,12 +454,11 @@ FROM HUAXIA.v_base_worker_count_dept").ToListAsync();
                     Items = query.ToArray()
                 };
 
-                return new BaseResult<PagedData<RealTimeTaskBean>>(paged);                
+                return new BaseResult<PagedData<RealTimeTaskBean>>(paged);
             }
             catch (Exception ex)
             {
-                string message = "realTimeTaskMonitoringPage()" + "ex:" + ex.Message;
-                Logger.LogWarning(ex, ex.Message);
+                Logger.LogWarning(ex, "RealTimeTaskMonitoringPage() error: {Message}", ex.Message);
                 return new BaseResult<PagedData<RealTimeTaskBean>>();
             }
         }
@@ -953,10 +986,8 @@ from HUAXIA.t_dashboard_monitor_top5_taskfailedcount where update_date=TO_CHAR(S
             try
             {
                 // 获取日期
-                StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select  DISTINCT date_format(query_date,'%Y-%m-%d')  as queryDate  from HUAXIA.t_dashboard_monitor_7days_dept_failedrate order by query_date ASC ");                
-                var sql1 = sb1.toString();
-                var queryDateBeanList = conn.Select<QueryDateBean>().WithSql(@sql1).ToList();
+                string sql1 = "SELECT DISTINCT TO_CHAR(query_date, 'YYYY-MM-DD') AS queryDate FROM HUAXIA.t_dashboard_monitor_7days_dept_failedrate ORDER BY queryDate ASC";
+                var queryDateBeanList = conn.Ado.Query<QueryDateBean>(sql1).ToList();
 
                 string[] queryDateArray = new string[queryDateBeanList.Count];
                 for (int j = 0; j < queryDateBeanList.Count; j++)
@@ -966,127 +997,31 @@ from HUAXIA.t_dashboard_monitor_top5_taskfailedcount where update_date=TO_CHAR(S
 
                 var taskRateList = new List<TaskRate>();
                 // 获取部门
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("  select  DISTINCT dep_name  as deptName from HUAXIA.t_dashboard_monitor_7days_dept_failedrate ");
-                var sql2 = sb2.toString();
-                var deptNameList = conn.Select<DeptNameBean>().WithSql(sql2).ToList();
+                string sql2 = "SELECT DISTINCT dep_name AS deptName FROM HUAXIA.t_dashboard_monitor_7days_dept_failedrate";
+                var deptNameList = conn.Ado.Query<DeptNameBean>(sql2).ToList();
 
-
-                // 获取失败率 
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append(" select  query_date as queryDate,dep_name as deptName,task_failed_rate as failedRate  from HUAXIA.t_dashboard_monitor_7days_dept_failedrate  order by query_date ASC ");
-                var sql3 = sb3.toString();
-                var taskFailedRateList = conn.Select<TaskFailedRate>().WithSql(sql3).ToList();
-
+                // 获取失败率
+                string sql3 = "SELECT query_date AS queryDate, dep_name AS deptName, task_failed_rate AS failedRate FROM HUAXIA.t_dashboard_monitor_7days_dept_failedrate ORDER BY queryDate ASC";
+                var taskFailedRateList = conn.Ado.Query<TaskFailedRate>(sql3).ToList();
 
                 for (int j = 0; j < deptNameList.Count; j++)
                 {
-                    string deptNameValue = deptNameList[j].deptName;  
-                    
-                    var rateList = new List<float>();
-                    for (int k = 0;k < taskFailedRateList.Count;k++) {
-                        string deptName = taskFailedRateList[k].deptName;
-                        if (deptNameValue.Equals(deptName)) {                           
-                            rateList.Add(taskFailedRateList[k].failedRate);
-                        }
-                    }
-                   
-                    float rate1 = rateList[0];
-                    float rate2 = rateList[1]; 
-                    float rate3 = rateList[2];
-                    float rate4 = rateList[3];                        
-                    float rate5 = rateList[4];                        
-                    float rate6 = rateList[5];
-                    float rate7 = rateList[6];
-                    float rate8 = rateList[7];
-                    float rate9 = rateList[8];
-                    float rate10 = rateList[9];
-                    float rate11 = rateList[10];
-                    float rate12 = rateList[11];
-                    float rate13 = rateList[12];
-                    float rate14 = rateList[13];
-
-                    if (rate1 == 0 && rate2 == 0 && rate3 == 0 && rate4 == 0 && rate5 == 0 && rate6 == 0 &&
-                        rate7 == 0 && rate8 == 0 && rate9 == 0 && rate10 == 0 && rate11 == 0 && rate12 == 0 && rate13 == 0 && rate14 == 0)
-                    {
-                        Console.WriteLine(deptNameValue);
-                    } else {
-                        taskRateList.Add(new TaskRate
-                        {
-                            name = deptNameValue,
-                            type = "line",
-                            data = rateList.ToArray(),
-                        });
-                    }
-                }
-
-                var taskFailedRateBean = new TaskFailedRateBean
-                {
-                    queryDateList = queryDateArray,
-                    taskRateList = taskRateList,
-                };
-
-                return new BaseResponse<TaskFailedRateBean> (taskFailedRateBean);
-            }
-            catch (Exception ex)
-            {
-                string message = "taskFailureRate()" + "ex:" + ex.Message;
-                Logger.LogWarning(ex, ex.Message);
-                return new BaseResponse<TaskFailedRateBean> ();
-            }
-        }
-
-        /**
-         * 任务运行失败率按机器人
-         */
-        [HttpPost("taskFailureWorkerRate")]
-        public BaseResponse<TaskFailedRateBean> TaskFailureWorkerRate([FromServices] IFreeSql conn)
-        {
-            try
-            {
-                // 获取日期
-                StringBuilder sb1 = new StringBuilder();
-                sb1.append(" select  DISTINCT date_format(query_date,'%Y-%m-%d')  as queryDate  from HUAXIA.t_dashboard_monitor_7days_worker_failedrate order by query_date ASC ");
-                var sql1 = sb1.toString();
-                var queryDateBeanList = conn.Select<QueryDateBean>().WithSql(@sql1).ToList();
-
-                string[] queryDateArray = new string[queryDateBeanList.Count];
-                for (int j = 0; j < queryDateBeanList.Count; j++)
-                {
-                    queryDateArray[j] = queryDateBeanList[j].queryDate;
-                }
-
-                var taskRateList = new List<TaskRate>();
-                // 获取worker
-                StringBuilder sb2 = new StringBuilder();
-                sb2.append("  select  DISTINCT worker_name  as workerName from HUAXIA.t_dashboard_monitor_7days_worker_failedrate   ");
-                var sql2 = sb2.toString();
-                var workerNameList = conn.Select<WorkerNameBean>().WithSql(sql2).ToList();
-
-                // 获取失败率 
-                StringBuilder sb3 = new StringBuilder();
-                sb3.append(" select  query_date as queryDate,worker_name as workerName,worker_failedrate as failedRate  from HUAXIA.t_dashboard_monitor_7days_worker_failedrate  order by query_date ASC ");
-                var sql3 = sb3.toString();
-                var taskFailedRateList = conn.Select<TaskWorkerFailedRate>().WithSql(sql3).ToList();
-
-
-                for (int j = 0; j < workerNameList.Count; j++)
-                {
-                    string workerNameValue = workerNameList[j].workerName;
+                    string deptNameValue = deptNameList[j].deptName;
 
                     var rateList = new List<float>();
                     for (int k = 0; k < taskFailedRateList.Count; k++)
                     {
-                        string deptName = taskFailedRateList[k].workerName;
-                        if (workerNameValue.Equals(deptName))
+                        string deptName = taskFailedRateList[k].deptName;
+                        if (deptNameValue.Equals(deptName))
                         {
                             rateList.Add(taskFailedRateList[k].failedRate);
                         }
                     }
+
                     taskRateList.Add(new TaskRate
                     {
-                        name = workerNameValue,
-                        type = "line",                     
+                        name = deptNameValue,
+                        type = "line",
                         data = rateList.ToArray(),
                     });
                 }
@@ -1101,8 +1036,69 @@ from HUAXIA.t_dashboard_monitor_top5_taskfailedcount where update_date=TO_CHAR(S
             }
             catch (Exception ex)
             {
-                string message = "taskFailureWorkerRate()" + "ex:" + ex.Message;
-                Logger.LogWarning(ex, ex.Message);
+                Logger.LogError(ex, "taskFailureDeptRate 执行失败: {Message}", ex.Message);
+                return new BaseResponse<TaskFailedRateBean> { };
+            }
+        }
+
+        /**
+         * 任务运行失败率按机器人
+         */
+        [HttpPost("taskFailureWorkerRate")]
+        public BaseResponse<TaskFailedRateBean> TaskFailureWorkerRate([FromServices] IFreeSql conn)
+        {
+            try
+            {
+                // 获取日期
+                string sql1 = "SELECT DISTINCT TO_CHAR(QUERY_DATE, 'YYYY-MM-DD') AS queryDate FROM HUAXIA.T_DASHBOARD_MONITOR_7DAYS_WORKER_FAILEDRATE ORDER BY queryDate ASC";
+                var queryDateBeanList = conn.Ado.Query<QueryDateBean>(sql1).ToList();
+
+                string[] queryDateArray = new string[queryDateBeanList.Count];
+                for (int j = 0; j < queryDateBeanList.Count; j++)
+                {
+                    queryDateArray[j] = queryDateBeanList[j].queryDate;
+                }
+
+                var taskRateList = new List<TaskRate>();
+                // 获取worker
+                string sql2 = "SELECT DISTINCT WORKER_NAME AS workerName FROM HUAXIA.T_DASHBOARD_MONITOR_7DAYS_WORKER_FAILEDRATE";
+                var workerNameList = conn.Ado.Query<WorkerNameBean>(sql2).ToList();
+
+                // 获取失败率
+                string sql3 = "SELECT QUERY_DATE AS queryDate, WORKER_NAME AS workerName, WORKER_FAILEDRATE AS failedRate FROM HUAXIA.T_DASHBOARD_MONITOR_7DAYS_WORKER_FAILEDRATE ORDER BY queryDate ASC";
+                var taskFailedRateList = conn.Ado.Query<TaskWorkerFailedRate>(sql3).ToList();
+
+                for (int j = 0; j < workerNameList.Count; j++)
+                {
+                    string workerNameValue = workerNameList[j].workerName;
+                    var rateList = new List<float>();
+                    for (int k = 0; k < taskFailedRateList.Count; k++)
+                    {
+                        string deptName = taskFailedRateList[k].workerName;
+                        if (workerNameValue.Equals(deptName))
+                        {
+                            rateList.Add(taskFailedRateList[k].failedRate);
+                        }
+                    }
+                    taskRateList.Add(new TaskRate
+                    {
+                        name = workerNameValue,
+                        type = "line",
+                        data = rateList.ToArray(),
+                    });
+                }
+
+                var taskFailedRateBean = new TaskFailedRateBean
+                {
+                    queryDateList = queryDateArray,
+                    taskRateList = taskRateList,
+                };
+
+                return new BaseResponse<TaskFailedRateBean>(taskFailedRateBean);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "taskFailureWorkerRate 执行失败: {Message}", ex.Message);
                 return new BaseResponse<TaskFailedRateBean> { };
             }
         }

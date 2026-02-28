@@ -156,7 +156,7 @@ namespace Laiye.Customer.WebApi.Model
     {
         public string deptName { get; set; }          // 部门
 
-        public int workerOffline { get; set; }      // worker在线人数
+        public int workerOffline { get; set; }      // worker离线人数
 
         public int workerCount { get; set; }       // worker总数
 
@@ -164,7 +164,10 @@ namespace Laiye.Customer.WebApi.Model
 
         /// <summary>
         /// 调试用，部门下的worker名称
+        /// 注意：前端不需要此字段，使用 [JsonIgnore] 排除
         /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
         public string workerNames { get; set; }
 
     }
