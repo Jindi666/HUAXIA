@@ -168,12 +168,11 @@ namespace Laiye.Customer.WebApi.Controllers
 
                 // 任务失败率
                 float taskFailRate = 0;
-                if (totalTaskNum > 0 && failTaskNum != 0) {
+                if (totalTaskNum > 0 && failTaskNum > 0) {
                     float taskFailRateTemp = ((float)failTaskNum / (float)totalTaskNum) * 100;
                     taskFailRate = float.Parse(taskFailRateTemp.ToString("#0.00"));
-                } else if (failTaskNum == 0 ) {
-                    taskFailRate = 100;
                 }
+                // 失败数为0时，taskFailRate保持初始值0
 
 
                 var failTaskRate = new FailTaskRate
