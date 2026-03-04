@@ -310,6 +310,10 @@ namespace Laiye.Customer.WebApi.Controllers
                 }
                
 
+                // 按日期升序排序
+                flowCountList = flowCountList.OrderBy(x => x.queryDate).ToList();
+                taskCountRateList = taskCountRateList.OrderBy(x => x.queryDate).ToList();
+
                 var runningConditionBean = new RunningConditionBean
                 {
                     flowCountList = flowCountList,
