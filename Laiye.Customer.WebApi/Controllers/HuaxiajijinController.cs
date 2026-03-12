@@ -304,7 +304,8 @@ namespace Laiye.Customer.WebApi.Controllers
                     var flowNum = query[j].flowNum;
                     var workHour = query[j].workHour;
 
-                    if (workerNum != 0 && userNum != 0 && taskNum != 0 && flowNum != 0 && workHour != 0) {
+                    // 只要部门名称不为空就返回
+                    if (!string.IsNullOrEmpty(deptName)) {
                         taskFinishList.Add(new TaskFinishBean
                         {
                             deptName = deptName,
@@ -316,6 +317,9 @@ namespace Laiye.Customer.WebApi.Controllers
                         });
                     }
                 }
+
+                // 按任务数量降序排序（排行榜：任务数多的排在前面）
+                taskFinishList = taskFinishList.OrderByDescending(x => x.taskNum).ToList();
 
                 return new BaseResponse<List<TaskFinishBean>> { data = taskFinishList };
             }
@@ -354,13 +358,13 @@ namespace Laiye.Customer.WebApi.Controllers
                 // 无人值守在线
                 // 注意: tbl_cmd_worker表使用IS_DELETED字段判断是否删除,worker_state判断在线状态
                 StringBuilder sb3 = new StringBuilder();
-                sb3.append(" select count(*) as unmannedOnline  from RPA.tbl_cmd_worker where (IS_DELETED = 0 OR IS_DELETED IS NULL) and worker_state=2 ");
+                sb3.append(" select count(*) as unmannedOnline  from RPA.tbl_cmd_worker where (IS_DELETED = 0 OR IS_DELETED IS NULL) and (worker_state=20 OR worker_state=10) and WORKER_NAME NOT LIKE '%容器化%' ");
                 var sql3 = sb3.toString();
                 var unManOnlineBean = conn.Select<UnManOnlineBean>().WithSql(@sql3).ToOne();
 
                 // 无人值守离线
                 StringBuilder sb4 = new StringBuilder();
-                sb4.append(" select count(*) as unmannedNotOnline from RPA.tbl_cmd_worker where (IS_DELETED = 0 OR IS_DELETED IS NULL) and worker_state=3 ");
+                sb4.append(" select count(*) as unmannedNotOnline from RPA.tbl_cmd_worker where (IS_DELETED = 0 OR IS_DELETED IS NULL) and worker_state=0 and WORKER_NAME NOT LIKE '%容器化%' ");
                 var sql4 = sb4.toString();
                 var unManNotOnlineBean = conn.Select<UnManNotOnlineBean>().WithSql(@sql4).ToOne();
 

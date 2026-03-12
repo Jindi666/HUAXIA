@@ -160,11 +160,9 @@ namespace Laiye.Customer.WebApi.Controllers
                               " FROM HUAXIA.t_dashboard_task_failed_today " +
                               " WHERE update_date = TO_CHAR(SYSDATE, 'YYYY-MM-DD')";
 
-                var taskRate = conn.Select<TotalFailTaskRateBean>().WithSql(sql2).ToOne();
-
-                // 今日任务失败数
-                var failTaskNum = taskRate.failTaskNum;
-                var totalTaskNum = taskRate.totalTaskNum;
+                var taskRate = conn.Ado.Query<TotalFailTaskRateBean>(sql2).FirstOrDefault();
+                var failTaskNum = taskRate != null ? taskRate.failTaskNum : 0;
+                var totalTaskNum = taskRate != null ? taskRate.totalTaskNum : 0;
 
                 // 任务失败率
                 float taskFailRate = 0;
@@ -185,10 +183,10 @@ namespace Laiye.Customer.WebApi.Controllers
                 return new BaseResponse<FailTaskRate>(failTaskRate);
             } catch (Exception ex)
             {
-                string message = "FailureRate()" + "ex:" + ex.Message;
+                string message = "FailureRate() ex:" + ex.Message;
                 Logger.LogWarning(ex, ex.Message);
-                return new BaseResponse<FailTaskRate> ();
-            }          
+                return new BaseResponse<FailTaskRate>();
+            }
         }
 
 
@@ -606,7 +604,10 @@ namespace Laiye.Customer.WebApi.Controllers
                 // 任务失败次数Top5
                 var sb = new StringBuilder();
                 sb.append(@" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime
-from HUAXIA.t_dashboard_monitor_top5_taskfailedcount where update_date=TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+from HUAXIA.t_dashboard_monitor_top5_taskfailedcount
+where update_date=TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+order by task_failed_count desc
+fetch first 5 rows only
 ");
                 var sql = sb.toString();
 
@@ -721,7 +722,7 @@ from HUAXIA.t_dashboard_monitor_top5_taskfailedcount where update_date=TO_CHAR(S
                 var taskFailureTop5List = new List<TaskFailureTop5Bean>();
                 // 任务失败次数Top5
                 StringBuilder sb = new StringBuilder();
-                sb.append(" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime from HUAXIA.t_dashboard_monitor_top5_taskfailedcount order by update_date desc ");
+                sb.append(" select dep_name as deptName,flow_name as flowName,task_failed_count as taskFail,query_time as queryTime from HUAXIA.t_dashboard_monitor_top5_taskfailedcount order by task_failed_count desc, update_date desc ");
                 var sql = sb.toString();
 
                 Logger.LogWarning($"taskFailureTop5Page SQL: {sql}");
@@ -939,6 +940,7 @@ from HUAXIA.t_dashboard_monitor_top5_taskfailedcount where update_date=TO_CHAR(S
 
                 var yaskFailedReasonList = new List<TaskFailedReason>();
                 StringBuilder sb1 = new StringBuilder();
+                // 修正字段映射：保持一致，dept_name 映射到 deptName，flow_name 映射到 flowName
                 sb1.append("select errcode,dept_name as deptName,flow_name as flowName,errcode_count as errcodeCount from HUAXIA.t_dashboard_monitor_failedReason_discount  where update_date=TO_CHAR(SYSDATE, 'YYYY-MM-DD') ");
                 var sql1 = sb1.toString();
 
